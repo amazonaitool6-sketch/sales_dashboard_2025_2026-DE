@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>2025 vs 2026 · Sales Performance Dashboard</title>
+<style>
+  :root{
+    --bg: #0B1220;
+    --panel: #111A2C;
+    --panel-2: #16223A;
+    --line: #24314D;
+    --ink: #EAF0FB;
+    --ink-dim: #8FA0C0;
+    --amber: #FFB020;
+    --teal: #2CD9C5;
+    --green: #4ADE80;
+    --red: #FB7185;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1000px 500px at 85% -10%, rgba(255,176,32,0.10), transparent 60%),
+      radial-gradient(800px 400px at -10% 10%, rgba(44,217,197,0.08), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+    padding: 40px 6vw 80px;
+  }
+  .eyebrow{
+    font-size:12px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--amber); font-weight:700; margin-bottom:8px;
+  }
+  h1{
+    font-size:clamp(28px,4vw,44px); margin:0 0 6px; font-weight:800; letter-spacing:-0.02em;
+  }
+  .sub{ color:var(--ink-dim); font-size:15px; max-width:600px; margin-bottom:36px;}
+  .kpi-row{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:16px; margin-bottom:40px;
+  }
+  .kpi{
+    background:linear-gradient(155deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line); border-radius:14px; padding:20px 22px;
+    position:relative; overflow:hidden;
+  }
+  .kpi::after{
+    content:''; position:absolute; top:-30%; right:-20%; width:120px;height:120px;
+    background:radial-gradient(circle,rgba(255,176,32,0.10),transparent 70%);
+  }
+  .kpi-label{ font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px;}
+  .kpi-val{ font-size:30px; font-weight:800; letter-spacing:-0.02em;}
+  .kpi-delta{ font-size:13px; font-weight:700; margin-top:8px; display:inline-flex; align-items:center; gap:5px;}
+  .up{ color:var(--green);}
+  .down{ color:var(--red);}
+  .grid-2{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:20px; margin-bottom:24px;
+  }
+  @media(max-width:900px){ .grid-2{grid-template-columns:1fr;} }
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px;
+  }
+  .panel h2{
+    font-size:14px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ink-dim);
+    margin:0 0 20px; font-weight:700;
+  }
+  .chart-wrap{ position:relative; }
+  .bars{ display:flex; align-items:flex-end; gap:14px; height:280px; padding:10px 4px 0; }
+  .bar-group{ flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:4px; }
+  .bar-pair{ display:flex; align-items:flex-end; gap:4px; width:100%; justify-content:center; height:100%; }
+  .bar{ width:22px; border-radius:5px 5px 0 0; position:relative; transition:opacity .2s; }
+  .bar:hover{ opacity:0.8; }
+  .bar-25{ background:rgba(143,160,192,0.4); }
+  .bar-26{ background:#FFB020; }
+  .bar-label{ font-size:11px; color:var(--ink-dim); margin-top:8px; }
+  .bar-val{ font-size:9.5px; color:var(--ink-dim); position:absolute; top:-16px; left:50%; transform:translateX(-50%); white-space:nowrap; }
+  .legend-row{ display:flex; gap:20px; margin-bottom:14px; font-size:12px; color:var(--ink-dim); }
+  .legend-row span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+  svg.linechart{ width:100%; height:280px; overflow:visible; }
+  table{ width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{
+    text-align:right; color:var(--ink-dim); font-weight:600; font-size:11px;
+    text-transform:uppercase; letter-spacing:1px; padding:8px 10px; border-bottom:1px solid var(--line);
+  }
+  th:first-child, td:first-child{ text-align:left; }
+  td{ padding:10px 10px; text-align:right; border-bottom:1px solid rgba(36,49,77,0.5); font-variant-numeric:tabular-nums;}
+  tr:last-child td{ border-bottom:none; font-weight:800; background:rgba(255,176,32,0.06);}
+  .pill{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-weight:700; font-size:12.5px;
+  }
+  .pill.up{ background:rgba(74,222,128,0.12); }
+  .pill.down{ background:rgba(251,113,133,0.12); }
+  .note{
+    margin-top:28px; padding:18px 22px; border-left:3px solid var(--amber);
+    background:rgba(255,176,32,0.06); border-radius:0 10px 10px 0; font-size:14px; color:var(--ink-dim);
+    line-height:1.6;
+  }
+  .note b{ color:var(--ink); }
+  footer{ margin-top:40px; font-size:12px; color:var(--ink-dim); text-align:center; }
+</style>
+</head>
+<body>
+
+  <div class="eyebrow">LEDSONE UK · Amazon.de Performance</div>
+  <h1>2025 vs 2026 Sales Comparison</h1>
+  <div class="sub">Month-wise unit sales and revenue, January – June, across all tracked ASINs.</div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Monthly Revenue (€)</h2>
+      <div class="legend-row">
+        <span><i class="dot" style="background:rgba(143,160,192,0.4)"></i>2025</span>
+        <span><i class="dot" style="background:#FFB020"></i>2026</span>
+      </div>
+      <div class="chart-wrap"><div class="bars" id="revChart"></div></div>
+    </div>
+    <div class="panel">
+      <h2>Monthly Units Sold</h2>
+      <div class="legend-row">
+        <span><i class="dot" style="background:#8FA0C0"></i>2025</span>
+        <span><i class="dot" style="background:#2CD9C5"></i>2026</span>
+      </div>
+      <div class="chart-wrap" id="unitChart"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Month-by-Month Breakdown</h2>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Units 2025</th>
+          <th>Units 2026</th>
+          <th>Unit Growth</th>
+          <th>Sales 2025 (€)</th>
+          <th>Sales 2026 (€)</th>
+          <th>Sales Growth</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>Reading the numbers:</b> Sales growth (+69.5%) is running well ahead of unit growth (+30.6%) across every month,
+    meaning average selling price has climbed alongside volume — not just a volume story.
+    <b>March</b> is the standout month (units +38.7%, sales +101.1%); <b>February</b> is the softest (units +13.9%),
+    worth checking against stock-outs or Buy Box loss for that period.
+  </div>
+
+  <footer>Generated from portfolio tracking data · Jan–Jun comparison</footer>
+
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+const units25 = [1067,1093,1086,748,704,634];
+const units26 = [1372,1245,1506,1047,936,855];
+const sales25 = [23360.07,23486.73,24349.99,19769.15,18407.26,16989.77];
+const sales26 = [41009.47,36779.94,48973.06,33600.32,27369.24,26424.53];
+
+const totU25 = units25.reduce((a,b)=>a+b,0);
+const totU26 = units26.reduce((a,b)=>a+b,0);
+const totS25 = sales25.reduce((a,b)=>a+b,0);
+const totS26 = sales26.reduce((a,b)=>a+b,0);
+const uGrowth = ((totU26-totU25)/totU25*100).toFixed(1);
+const sGrowth = ((totS26-totS25)/totS25*100).toFixed(1);
+const asp25 = totS25/totU25;
+const asp26 = totS26/totU26;
+const aspGrowth = ((asp26-asp25)/asp25*100).toFixed(1);
+
+const fmtNum = n => n.toLocaleString('en-US',{maximumFractionDigits:0});
+const fmtEur = n => '€' + n.toLocaleString('en-US',{maximumFractionDigits:0});
+
+const kpis = [
+  {label:'Total Units 2025 → 2026', val:`${fmtNum(totU25)} → ${fmtNum(totU26)}`, delta:uGrowth},
+  {label:'Total Revenue 2025 → 2026', val:`${fmtEur(totS25)} → ${fmtEur(totS26)}`, delta:sGrowth},
+  {label:'Avg. Selling Price', val:`${fmtEur(Math.round(asp25))} → ${fmtEur(Math.round(asp26))}`, delta:aspGrowth},
+  {label:'Best Growth Month', val:'March', delta:'+101.1%'},
+];
+
+const kpiRow = document.getElementById('kpiRow');
+kpis.forEach(k=>{
+  const up = parseFloat(k.delta) >= 0;
+  kpiRow.innerHTML += `
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-delta ${up?'up':'down'}">${up?'▲':'▼'} ${k.delta}${String(k.delta).includes('%')?'':'%'}</div>
+    </div>`;
+});
+
+const tbody = document.querySelector('#dataTable tbody');
+months.forEach((m,i)=>{
+  const ug = ((units26[i]-units25[i])/units25[i]*100).toFixed(1);
+  const sg = ((sales26[i]-sales25[i])/sales25[i]*100).toFixed(1);
+  tbody.innerHTML += `
+    <tr>
+      <td>${m}</td>
+      <td>${fmtNum(units25[i])}</td>
+      <td>${fmtNum(units26[i])}</td>
+      <td><span class="pill ${ug>=0?'up':'down'}">${ug>=0?'+':''}${ug}%</span></td>
+      <td>${fmtNum(sales25[i])}</td>
+      <td>${fmtNum(sales26[i])}</td>
+      <td><span class="pill ${sg>=0?'up':'down'}">${sg>=0?'+':''}${sg}%</span></td>
+    </tr>`;
+});
+tbody.innerHTML += `
+  <tr>
+    <td>Total</td>
+    <td>${fmtNum(totU25)}</td>
+    <td>${fmtNum(totU26)}</td>
+    <td><span class="pill up">+${uGrowth}%</span></td>
+    <td>${fmtNum(totS25)}</td>
+    <td>${fmtNum(totS26)}</td>
+    <td><span class="pill up">+${sGrowth}%</span></td>
+  </tr>`;
+
+// --- Bar chart: Monthly Revenue ---
+const revEl = document.getElementById('revChart');
+const maxSales = Math.max(...sales25, ...sales26);
+months.forEach((m,i)=>{
+  const h25 = (sales25[i]/maxSales*100).toFixed(1);
+  const h26 = (sales26[i]/maxSales*100).toFixed(1);
+  revEl.innerHTML += `
+    <div class="bar-group">
+      <div class="bar-pair">
+        <div class="bar bar-25" style="height:${h25}%"><span class="bar-val">${fmtEur(sales25[i])}</span></div>
+        <div class="bar bar-26" style="height:${h26}%"><span class="bar-val">${fmtEur(sales26[i])}</span></div>
+      </div>
+      <div class="bar-label">${m}</div>
+    </div>`;
+});
+
+// --- Line chart: Monthly Units (SVG) ---
+const unitEl = document.getElementById('unitChart');
+const w = 640, h = 260, padL = 40, padR = 10, padT = 20, padB = 30;
+const maxUnits = Math.max(...units25, ...units26) * 1.1;
+const xStep = (w - padL - padR) / (months.length - 1);
+const yScale = v => padT + (h - padT - padB) * (1 - v / maxUnits);
+const xScale = i => padL + i * xStep;
+
+function pathFor(data){
+  return data.map((v,i)=> `${i===0?'M':'L'} ${xScale(i).toFixed(1)} ${yScale(v).toFixed(1)}`).join(' ');
+}
+function areaFor(data){
+  const line = data.map((v,i)=> `${xScale(i).toFixed(1)},${yScale(v).toFixed(1)}`).join(' ');
+  return `M ${xScale(0)},${yScale(0)} L ${line} L ${xScale(data.length-1)},${yScale(0)} Z`;
+}
+
+let gridLines = '';
+for(let g=0; g<=4; g++){
+  const y = padT + (h-padT-padB)*g/4;
+  const val = Math.round(maxUnits * (1 - g/4));
+  gridLines += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="rgba(36,49,77,0.6)" stroke-width="1"/>
+    <text x="${padL-8}" y="${y+4}" font-size="10" fill="#8FA0C0" text-anchor="end">${val}</text>`;
+}
+
+let xLabels = months.map((m,i)=>`<text x="${xScale(i)}" y="${h-8}" font-size="11" fill="#8FA0C0" text-anchor="middle">${m}</text>`).join('');
+
+let dots25 = units25.map((v,i)=>`<circle cx="${xScale(i)}" cy="${yScale(v)}" r="3.5" fill="#8FA0C0"/>`).join('');
+let dots26 = units26.map((v,i)=>`<circle cx="${xScale(i)}" cy="${yScale(v)}" r="3.5" fill="#2CD9C5"/>`).join('');
+
+unitEl.innerHTML = `
+  <svg class="linechart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    ${gridLines}
+    <path d="${areaFor(units25)}" fill="rgba(143,160,192,0.12)" stroke="none"/>
+    <path d="${areaFor(units26)}" fill="rgba(44,217,197,0.12)" stroke="none"/>
+    <path d="${pathFor(units25)}" fill="none" stroke="#8FA0C0" stroke-width="2.5"/>
+    <path d="${pathFor(units26)}" fill="none" stroke="#2CD9C5" stroke-width="2.5"/>
+    ${dots25}${dots26}
+    ${xLabels}
+  </svg>`;
+</script>
+
+</body>
+</html>
